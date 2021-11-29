@@ -60,6 +60,8 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+# API Secret Key
+/secrets.json
 
 # Flask stuff:
 instance/
@@ -109,6 +111,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# OS
+.DS_Store
 
 # Spyder project settings
 .spyderproject
