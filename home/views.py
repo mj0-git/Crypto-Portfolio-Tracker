@@ -22,7 +22,6 @@ class MainView(ListView):
         if(q_set):
             crypto_list = [q.name.lower() for q in q_set]
             result = get_crypto_list(crypto_list)
-            
             if result:
                 for q in q_set:
                     if q.name.lower() in result:
@@ -38,9 +37,9 @@ class MainView(ListView):
 
 def get_crypto_list(crypto_list):
     url = "https://coingecko.p.rapidapi.com/simple/price"
-    querystring = {"ids":crypto_list,"vs_currencies":"usd"}
+    ids = ",".join(crypto_list)
+    querystring = {"ids":ids,"vs_currencies":"usd"}
     headers = settings.API_KEYS["coingecko"]
-
     try:
         response = requests.get(url, headers=headers, params=querystring)
         data = response.json()

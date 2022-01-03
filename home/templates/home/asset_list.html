@@ -4,7 +4,6 @@
 <table class="table table-bordered">
     <thead class="thead-dark">
         <tr>
-        <th scope="col">#</th>
         <th scope="col">Purchase Date</th>
         <th scope="col">Type</th>
         <th scope="col">Name</th>
@@ -21,16 +20,20 @@
     <tbody>
         {% for asset in asset_list %}
         <tr>
-        <th scope="row">{{asset.id}}</th>
             <td>{{asset.purchase_date}}</td>
             <td>{{asset.type}}</td>
-            <td>{{asset.name}}</td>
-            <td>{{asset.entry_price}}</td>
+            <td><b>{{asset.name}}</b></td>
+            <td>${{asset.entry_price}}</td>
             <td>{{asset.size}}</td>
-            <td>{{asset.target_price}}</td>
-            <td>{{asset.stop_price}}</td>
-            <td>{{asset.profit}}</td>
-            <td>{{asset.current_price}}</td>
+            <td>${{asset.target_price}}</td>
+            <td>${{asset.stop_price}}</td>
+            {% if asset.profit < 0 %}
+            <td class="Loss">
+            {% else %} 
+            <td class="Profit">
+            {% endif %} 
+                ${{asset.profit}}</td>
+            <td>${{asset.current_price}}</td>
              <td>
                 <a href={% url 'home:asset_update' asset.id %}> Update </a> <br>
                 <a href={% url 'home:asset_delete' asset.id %}> Delete </a>

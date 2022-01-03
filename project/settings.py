@@ -139,3 +139,4 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured("Set the {} setting".format(setting))
 
 API_KEYS = get_secret("API-KEYS")
+STATIC_URL = 'static/'
