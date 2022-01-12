@@ -1,7 +1,90 @@
+
+h1{
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 55px;
+  font-weight: 400;
+}
+h2 { 
+  display: block;
+  font-size: 1.5em;
+  margin-top: 0.83em;
+  margin-left: 0;
+  margin-right: 0;
+  font-family: 'American Typewriter', serif;
+  font-size: 34px;
+}
+
+.invest-head {
+  float:left;
+  margin-bottom: 2em;
+}
+
 .Loss {
     color: #FF0000;
   }
   
 .Profit {
     color: #149635;
+}
+
+#account {
+  text-align: center;
+}
+
+#investment {
+  font-size: 17px;
+  font-family: 'Times', 'Times New Roman', serif
+}
+
+#summary {
+  font-size: 18px;
+  font-family: 'Palatino', 'URW Palladio L', serif
+}
+
+div.footer {
+  left: 0;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+a.advanced{
+  padding: 5px 10px;
+}
+
+.button {
+  font-family: 'Palatino', 'URW Palladio L', serif;
+  transition-duration: 0.4s;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.button:hover {
+  background-color: #696969; 
+  color: white;
+}
+a.add:link, a.add:visited {
+  background-color: white;
+  color: black;
+  border: 2px solid rgb(47, 48, 47);
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+a.add:hover, a.add:active {
+  background-color: rgb(78, 78, 78);
+  color: white;
+}
+
+a.modify {
+  font-family: 'Times', 'Times New Roman', serif;
+  font-size: 16px;
+  color: rgb(11, 12, 71);
 }

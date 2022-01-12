@@ -1,38 +1,94 @@
 {% extends "base_bootstrap.html" %}
 {% block content %}
+  <h2> Asset Form </h2> 
   <form action="" method="post">
     {% csrf_token %}
-    <table>
-      {{ form }}
-    </table>
-    <input  type="submit" value="Submit">
-    <input type="submit" onclick="window.location='{% url 'home:all' %}' ; return false;" value="Cancel">
+    <div id="default">
+      <div class="form-group row">
+          <label class="col-sm-2 col-form-label">{{ form.name.label }}: </label>
+          <div class="col-sm-10">{{ form.name }} </div> 
+      </div>
+      <div class="form-group row">
+          <label class="col-sm-2 col-form-label">{{ form.purchase_date.label }}: </label>
+          <div class="col-sm-10">{{ form.purchase_date }} </div>
+      </div> 
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.size.label }}: </label>
+        <div class="col-sm-10">{{ form.size }} </div>
+      </div> 
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.entry_price.label }}: </label>
+        <div class="col-sm-10">{{ form.entry_price }} </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.type.label }}: </label>
+        <div class="col-sm-10">{{ form.type }} </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.portfolio.label }}: </label>
+        <div class="col-sm-10">{{ form.portfolio }} </div>
+      </div> 
+    </div> 
+    
+    <div id="option" >
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.option_type.label }} </label>
+        <div class="col-sm-10">{{ form.option_type }} </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.option_strike.label }} </label>
+        <div class="col-sm-10">{{ form.option_strike }} </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">{{ form.option_expiry.label }} </label>
+        <div class="col-sm-10">{{ form.option_expiry }} </div>
+      </div>
+    </div>
 
+    <a href='#' class='advanced'>Advanced Options</a>
+
+    <div id='advancedOptions'>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="col-sm-2 col-form-label">Stop</label>
+          {{ form.target_price }}
+        </div>
+        <div class="form-group col-md-6">
+          <label class="col-sm-2 col-form-label"> Target </label>
+          {{ form.stop_price }}
+        </div>
+      </div>
+    </div>
+    {{ form.errors }}
+
+    <div style="padding-top: 25px;">
+    <input class="btn btn-primary mb-2" type="submit" value="Submit" action="" method="post">
+    <input class="btn btn-secondary mb-2" type="submit" onclick="window.location='{% url 'home:all' %}' ; return false;" value="Cancel">
+    </div>
   </form>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
   <script>
- 
- jQuery(function(){
-
-    jQuery('.autocomplete').autocomplete({
-       
-        source: function(request, response) {
-            $.ajax({
-                url: "/search",
-                dataType: "json",
-                data: request,
-                success: function( data, textStatus, jqXHR) {
-                    console.log( data.data);
-                    var items = data.data;
-                    response(items);
-                },
-                error: function(jqXHR, textStatus, errorThrown){
-                     console.log( textStatus);
-                }
-            });
+    window.onload = showOptionsFields;
+    function showOptionsFields()
+    {
+        if (document.getElementById("asset-type").value == "option"){
+          document.getElementById("option").style.display = 'block';
         }
-    });
+        else{
+          document.getElementById("option").style.display = 'none';
+        }
+    }
 
-});
+    $(document).ready(function () {
+      $('#advancedOptions').hide();
+      $('.advanced').click(function() {
+          if ($('#advancedOptions').is(':hidden')) {
+              $('#advancedOptions').slideDown();
+          } else {
+              $('#advancedOptions').slideUp();
+          }
+      });
+    });
 
   </script>
 {% endblock %}

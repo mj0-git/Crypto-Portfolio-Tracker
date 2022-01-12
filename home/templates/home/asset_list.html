@@ -1,50 +1,187 @@
 {% extends "base_bootstrap.html" %}
 {% load asset_tags %}
 {% block  content %}
-<table class="table table-bordered">
-    <thead class="thead-dark">
+
+{% if investment_list%}
+    <h1> Portfolio Watch </h1>
+    <div >
+        <!--
+        {% autoescape off %}
+        {{ plot_div }}
+        {% endautoescape %} -->
+    <table id="summary" class="table table-sm ">
+        <thead>
+            <tr class="h6">
+            <th id="account" scope="col">Investment Account</th>
+            <th scope="col">Book Value</th>
+            <th scope="col">Market Value</th>
+            <th scope="col">Yield</th>
+            <th scope="col">Cash</th>
+            </tr>
+        </thead>
+        {% for p in investment_list %}
+        <tbody>
+            <tr>
+                <td id="account">{{p.account.name}}</td>
+                <td>${{p.account.bookval}}</td>
+                <td>${{p.account.marketval}}</td>
+                {% if p.account.p_yield < 0 %}
+                <td class="Loss">
+                {% else %} 
+                <td class="Profit">
+                {% endif %} 
+                ${{p.account.c_yield}}<br>
+                {{p.account.p_yield}}%</td>
+                <td>${{p.account.cash}}</td>
+            </tr>
+        {% endfor %}
+        {% if invest_total%}
+            <tr>
+                <td></td>
+                <td>${{invest_total.book}}</td>
+                <td>${{invest_total.market}}</td>
+                {% if invest_total.p_yield < 0 %}
+                <td class="Loss">
+                {% else %} 
+                <td class="Profit">
+                {% endif %}
+                ${{invest_total.c_yield}}<br>
+                {{invest_total.p_yield}}%</td>
+                <td>${{invest_total.cash}}</td>
+                </tr>
+        {% endif %}    
+        <thead>
+            <tr class="h6">
+            <th id="account" scope="col">Bank Account</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            </tr>
+        </thead>
+        {% for s in savings_list %}
+        <tbody>
+            <tr>
+                <td id="account">{{s.name}}</td>
+                <td>
+                    (<a class="modify" href={% url 'home:portfolio_update' s.id %}> Update </a> |
+                    <a class="modify" href={% url 'home:portfolio_delete' s.id %}> Delete </a> )
+                 </td>
+                <td></td>
+                <td></td>
+                <td>${{s.cash}}</td>
+            </tr>
+        {% endfor %}
+        {% if saving_total%}
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="table-active">${{saving_total.cash}}</td>
+                </tr>
+        {% endif %}    
+        </tbody> 
+    </table>
+    </div>
+    <div style="clear:both">
+    <form action="" method="post">
+        {% csrf_token %}
+        <input class="button" style="float:right" type="submit" name="refresh" value="Refresh Quotes" />
+        <p><a class="add" href="{% url 'home:asset_create' %}"> Add Asset </a>
+            <a class="add" href={% url 'home:portfolio_create'%}> Add Portfolio </a></p>
+    </form>        
+    {% for p in investment_list %}
+    <div class="invest-head">
+        <h2> {{p.account.name}} </h2> 
+        (<a class="modify" href={% url 'home:portfolio_update' p.account.id %}> Update </a> |
+        <a class="modify" href="{% url 'home:portfolio_delete'  p.account.id %}"> Delete </a>)
+    </div>
+    <table id="summary" class="table table-sm table-bordered">
         <tr>
-        <th scope="col">Purchase Date</th>
-        <th scope="col">Type</th>
-        <th scope="col">Name</th>
-        <th scope="col">Entry Price</th>
-        <th scope="col">Size</th>
-        <th scope="col">Target Price</th>
-        <th scope="col">Stop Price</th>
-        <th scope="col">Profit/Loss</th>
-        <th scope="col">Current Price</th>
-        <th scope="col">Action</th>
+            <td class="font-weight-bold"> Market Value: </td>
+            <td>${{p.account.marketval}}</td>
         </tr>
-  </thead>
-    {% if asset_list%}
-    <tbody>
-        {% for asset in asset_list %}
         <tr>
-            <td>{{asset.purchase_date}}</td>
-            <td>{{asset.type}}</td>
-            <td><b>{{asset.name}}</b></td>
-            <td>${{asset.entry_price}}</td>
-            <td>{{asset.size}}</td>
-            <td>${{asset.target_price}}</td>
-            <td>${{asset.stop_price}}</td>
-            {% if asset.profit < 0 %}
+            <td class="font-weight-bold"> Book Value: </td>
+            <td> ${{p.account.bookval}}</td>
+        </tr>
+        <tr>
+            <td class="font-weight-bold"> Yield: </td>
+            {% if p.account.p_yield < 0 %}
             <td class="Loss">
+                ${{p.account.c_yield}}</td>
+            </tr>
+            <tr>
+                <td> </td>
+            <td class="Loss">
+                {{p.account.p_yield}}%</td>
+            </tr>
             {% else %} 
             <td class="Profit">
+                ${{p.account.c_yield}}</td>
+            </tr>
+            <tr>
+                <td> </td>
+            <td class="Profit">
+                {{p.account.p_yield}}%</td>
+            </tr>
             {% endif %} 
-                ${{asset.profit}}</td>
-            <td>${{asset.current_price}}</td>
-             <td>
-                <a href={% url 'home:asset_update' asset.id %}> Update </a> <br>
-                <a href={% url 'home:asset_delete' asset.id %}> Delete </a>
-             </td>
+        
         </tr>
-        {% endfor %}
-    </tbody>
-    {% endif %}
-    <p> 
-        <a href="{% url 'home:asset_create' %}"> Add asset </a>
-    </p>
-
-</table>
+        <tr>
+            <td class="font-weight-bold"> Cash: </td>
+            <td> ${{p.account.cash}}</td>
+        </tr>
+    </table>
+        {% if p.assets%}        
+        <table id="investment" class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                <th scope="col">Purchase Date</th>
+                <th scope="col">Type</th>
+                <th scope="col">Name</th>
+                <th scope="col">Entry Price</th>
+                <th scope="col">Size</th>
+                <th scope="col">Profit/Loss</th>
+                <th scope="col">Current Price</th>
+                <th scope="col">Book Value</th>
+                <th scope="col">Market Value</th>
+                <th scope="col">Action</th>
+                </tr>
+            </thead>
+            {% for asset in p.assets %}
+            <tbody>
+                <tr>
+                    <td>{{asset.purchase_date}}</td>
+                    <td>{{asset.type}}</td>
+                    <td><b>{{asset.name}}</b></td>
+                    <td>${{asset.entry_price}}</td>
+                    <td>{{asset.size}}</td>
+                    {% if asset.profit < 0 %}
+                    <td class="Loss">
+                    {% else %} 
+                    <td class="Profit">
+                    {% endif %} 
+                        ${{asset.profit}}</td>
+                    <td>${{asset.current_price}}</td>
+                    <td>${{asset.bookval}}</td>
+                    <td>${{asset.marketval}}</td>
+                     <td>
+                        <a class="modify" href={% url 'home:asset_update' asset.id %}> Update </a> <br>
+                        <a class="modify" href={% url 'home:asset_delete' asset.id %}> Delete </a>
+                     </td>
+                </tr>
+                
+            </tbody>
+            {% endfor %}
+        
+        </table>
+        {% endif %}
+    
+   {% endfor %}
+{% endif %}
+</div>
+<div class="footer">
+</div>
 {% endblock %}
