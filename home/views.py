@@ -28,14 +28,16 @@ class MainView(ListView):
     def get(self, request) :
         context = {}
         
-        # Get Portolfio List
-        try:
-            invest_accounts = Portfolio.objects.filter(type="investment")
-            saving_accounts = Portfolio.objects.filter(type="saving")
-        except Portfolio.DoesNotExist:
-            portfolios = Portfolio(cash=0.00)
-            portfolios.save()
-
+        # Get Investment Accounts
+        invest_accounts = Portfolio.objects.filter(type="investment")
+        if not invest_accounts:
+            portfolio = Portfolio(name="Default", cash=0.00)
+            portfolio.save()
+            invest_accounts = [portfolio]
+        
+        # Get Saving Accounts
+        saving_accounts = Portfolio.objects.filter(type="saving")
+        
         # Track Investment Running Totals
         investment_list = []
         invest_total_book = 0
@@ -72,7 +74,6 @@ class MainView(ListView):
 
         # Investment Account
         for account in invest_accounts:
-            
             asset_set = account.asset_set.all()
             
             # Track Portfolio total 
