@@ -34,7 +34,6 @@ class Asset(models.Model):
     entry_price = models.DecimalField(max_digits=10, decimal_places=2)
     target_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     stop_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     type = models.CharField(max_length=10, choices=ASSET_TYPE_CHOICES, default='equity')
 
     OPTION_TYPE_CHOICES = (
@@ -44,8 +43,13 @@ class Asset(models.Model):
     option_strike = models.DecimalField(max_digits=10, decimal_places=2, blank=True, default=0.00)
     option_expiry = models.DateField(default=timezone.now, blank=True)
     option_type = models.CharField(max_length=10, choices=OPTION_TYPE_CHOICES, default='calls')
-
     portfolio = models.ForeignKey('Portfolio', on_delete=models.CASCADE, null=False, default=1)
+
+    # Output Variables Only
+    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    bookval = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    marketval = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    profit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self) -> str:
         return self.name

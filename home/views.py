@@ -38,6 +38,9 @@ class MainView(ListView):
         # Get Saving Accounts
         saving_accounts = Portfolio.objects.filter(type="saving")
         
+        df = pd.DataFrame.from_records(Portfolio.objects.all().values())
+        #print(df.head())
+        
         # Track Investment Running Totals
         investment_list = []
         invest_total_book = 0
@@ -46,7 +49,7 @@ class MainView(ListView):
 
         # Track Savings Running Totals
         saving_list = []
-        saving_total_cash = 0
+        total_cash = 0
 
         # Work in Progress...
         df = pd.DataFrame({'mass': [0.330, 4.87 , 5.97],
@@ -68,69 +71,53 @@ class MainView(ListView):
         # Saving Account
         for account in saving_accounts:
             saving_list.append(account)
-            saving_total_cash += account.cash
+            total_cash += account.cash
             account.cash = "{:,}".format(round(account.cash,2))
-        
 
         # Investment Account
         for account in invest_accounts:
             asset_set = account.asset_set.all()
             
-            # Track Portfolio total 
-            account_book = 0
-            account_market = 0
+            # Summary of Single Investment Account
+            account_book = sum(float(asset.bookval) for asset in asset_set)
+            account_market = sum(float(asset.marketval) for asset in asset_set)
             account_cash = float(account.cash)
-
-            for asset in asset_set:
-                
-                # Adjust size for option (1 contract = 100 shares)
-                adj = 1
-                if (asset.type == "option"):
-                    adj = 100
-
-                current_price  = float(asset.current_price)
-                size = float(asset.size)
-                entry_price = float(asset.entry_price)
-                
-                book_value = round(entry_price * (size*adj),2)
-                account_book += book_value
-
-                market_value = round(current_price * (size*adj),2)
-                account_market += market_value
-                
-                asset.profit = round(market_value - book_value,2)
-                asset.marketval = market_value
-                asset.bookval = book_value
-
-        
-            invest_total_book += account_book
-            invest_total_cash += account_cash
-            invest_total_market += account_market
-            
-            # Summary of Single Portfolio
             market, book, cash, c_yield, p_yield = get_summary(account_market, account_book, account_cash)
             account.marketval = market
             account.bookval = book
             account.cash = cash
             account.c_yield = c_yield
             account.p_yield = p_yield
-
             investment_list.append( {"account":account, "assets":asset_set}  )
             
-         # Summary of ALL Portfolios
+            
+            invest_total_book += account_book
+            invest_total_cash += account_cash
+            invest_total_market += account_market
+            
+        # Saving and Investment Details 
+        context["savings_list"] = saving_list
         context["investment_list"] = investment_list
+
+        # Summary of Total Investment Accounts 
         market, book, cash, c_yield, p_yield = get_summary(invest_total_market, invest_total_book, invest_total_cash)
         context["invest_total"] = {"market":market, "book":book, "p_yield":p_yield, "c_yield":c_yield, "cash":cash}
 
-        context["savings_list"] = saving_list
-        saving_total_cash = float(saving_total_cash) + invest_total_cash
-        saving_total_cash = "{:,}".format(round(saving_total_cash,2))
-        context["saving_total"] = {"cash":saving_total_cash}
+        # Summary of Total Net Worth
+        total_cash = float(total_cash) + invest_total_cash - invest_total_book
+        total_net = total_cash + invest_total_market
+        total_cash = "{:,}".format(round(total_cash,2))
+        total_net = "{:,}".format(round(total_net,2))
+        context["net_total"] = {"cash":total_cash, "assets":market, "net":total_net}
+
         return render(request, self.template_name, context)
     
-    def post(self, request,):
+    def post(self, request):
         get_asset_list()
         return redirect(self.success_url)
+
+
+
 
 def get_summary(in_market, in_book, in_cash):
     market = "{:,}".format(round(in_market,2))
@@ -180,6 +167,7 @@ def get_asset_list():
                 price = round(float(data["Global Quote"]['05. price']),2)
                 print("Asset:{}  Price:{}".format(asset.name, price))
                 asset.current_price = price
+                asset = get_asset_summary(asset)
                 asset.save()
             except requests.exceptions.HTTPError as e:
                 print("Failed to update ASSET Price for {}".format(asset.name) )
@@ -194,11 +182,29 @@ def get_asset_list():
                 price = chain[option_type][chain[option_type]['Strike'] == asset.option_strike]["Last Price"]
                 print("Asset:{} Option Price:{}".format(ticker, price))
                 asset.current_price = round(price.item(),2)
+                asset = get_asset_summary(asset)
                 asset.save()
             except requests.exceptions.HTTPError as e:
                 print("Failed to update OPTION Price for {}".format(asset.name) )
                 print (e.response.text)
 
+
+def get_asset_summary(asset):
+    adj = 1
+    if (asset.type == "option"):
+        adj = 100
+
+    current_price  = float(asset.current_price)
+    size = float(asset.size)
+    entry_price = float(asset.entry_price)
+    book_value = round(entry_price * (size*adj),2)
+    market_value = round(current_price * (size*adj),2)
+    
+    asset.profit = round(market_value - book_value,2)
+    asset.marketval = market_value
+    asset.bookval = book_value
+
+    return asset
 
 class AssetCreate(CreateView):
     model = Asset

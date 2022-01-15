@@ -72,14 +72,28 @@
                 <td>${{s.cash}}</td>
             </tr>
         {% endfor %}
-        {% if saving_total%}
+        {% if net_total%}
             <tr>
                 <td></td>
                 <td></td>
                 <td></td>
+                <td>Cash:</td>
+                <td class="table-active">${{net_total.cash}}</td>
+            </tr>
+            <tr>
                 <td></td>
-                <td class="table-active">${{saving_total.cash}}</td>
-                </tr>
+                <td></td>
+                <td></td>
+                <td>Assets:</td>
+                <td class="table-active">${{net_total.assets}}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Net Worth:</td>
+                <td class="table-active">${{net_total.net}}</td>
+            </tr>
         {% endif %}    
         </tbody> 
     </table>
