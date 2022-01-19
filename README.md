@@ -9,6 +9,7 @@ Simple single-page layout to construct/track/backtest the performance of custom 
  
 
 ![](./images/portfolio.png)
+![](./images/portfolio2.png)
 
 ## Features ##
 
@@ -38,8 +39,7 @@ Charted using __[Plotly](https://plotly.com/python/)__
     python manage.py migrate
     ```
 
-4. Obtain Free API key for AlphaVantage from __[Alpha Vantage](https://www.alphavantage.co/)__, write to  __secrets-example.json__, and rename file to __secrets.json__ 
-__Please Note__: You must complete this step in order to refresh quotes!
+4. Obtain Free API key for AlphaVantage from __[Alpha Vantage](https://www.alphavantage.co/)__, write to  __secrets-example.json__, and rename file to __secrets.json__. You must complete this step in order to refresh quotes!
     ``` 
     mv  secrets-example.json secrets.json
     ```

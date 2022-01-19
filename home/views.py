@@ -64,26 +64,21 @@ class MainView(ListView):
         for account in invest_accounts:
             asset_set = account.asset_set.all()
             
-            # Summary of Single Investment Account
-            account_book = sum(float(asset.bookval) for asset in asset_set)
-            account_market = sum(float(asset.marketval) for asset in asset_set)
-            account_cash = float(account.cash)
-            plot_div = None
-
             # Plot Account Balance History
+            plot_div = None
             acct_series = account_balance_series(account)
             if not acct_series.empty:
                 fig = plot_acct_balance(acct_series, acct_series.name)
                 plot_div = plotly.offline.plot(fig, output_type='div')
                 df_total = pd.concat([df_total, acct_series], axis=1 )
             
+            # Calculate running total of investments 
+            invest_total_book += float(account.bookval) 
+            invest_total_cash += float(account.cash) 
+            invest_total_market += float(account.marketval) 
 
             investment_list.append( {"account":account, "assets":asset_set, "plot_div":plot_div}  )
             
-            
-            invest_total_book += account_book
-            invest_total_cash += account_cash
-            invest_total_market += account_market
         
 
         # Account & Asset Details 
@@ -184,29 +179,37 @@ def refresh_asset_quotes():
     for portfolio in portfolios:
         crypto_equity_set = portfolio.asset_set.filter(Q(type="crypto") | Q(type="equity"))
         option_set = portfolio.asset_set.filter(type="option")
-    
+
+        # Refresh Equity and Crypto Prices - Alph Vantage
         for asset in crypto_equity_set:
             try:
+                # API Call Logic
                 querystring = {"function":"GLOBAL_QUOTE","symbol":asset.name,"apikey":key}
                 response = requests.request("GET", url, params=querystring)
                 data = response.json() 
                 price = round(float(data["Global Quote"]['05. price']),2)
                 print("Asset:{}  Price:{}".format(asset.name, price))
+               
+               # Populate asset fields and save
                 asset.current_price = price
-                asset = get_asset_summary(asset)
+                asset = populate_asset_fields(asset)
                 asset.save()
             except requests.exceptions.HTTPError as e:
                 print("Failed to update ASSET Price for {}".format(asset.name) )
                 print (e.response.text)
         
+        # Refresh Option Prices - yahoo_fin
         for asset in option_set:
             try:
+                # API Call Logic
                 ticker = asset.name
                 expiry_date = asset.option_expiry.strftime('%m/%d/%y')
                 chain = options.get_options_chain(ticker, expiry_date)
                 option_type = asset.option_type
                 price = chain[option_type][chain[option_type]['Strike'] == asset.option_strike]["Last Price"]
                 print("Asset:{} Option Price:{}".format(ticker, price))
+                
+                # Populate asset fields and save
                 asset.current_price = round(price.item(),2)
                 asset = get_asset_summary(asset)
                 asset.save()
@@ -218,19 +221,20 @@ def refresh_portfolio_quotes():
     
     portfolios = Portfolio.objects.filter(type="investment")
     for account in portfolios:
+
+        # Calculate Account quote
         asset_set = account.asset_set.all()
         account_book = sum(float(asset.bookval) for asset in asset_set)
         account_market = sum(float(asset.marketval) for asset in asset_set)
         begin_balance = float(account.cash)
         account_total = (account_market + (begin_balance - account_book))
 
+        # Set Account fields and Save
         account.marketval = round(account_market,2)
         account.bookval =  round(account_book,2)
         account.net_cash = round(begin_balance - account_book,2)
         account.c_yield= round((account_market - account_book), 2)
         account.total = round(account_total, 2)
-
-        
         if account_book > 0:
             account.p_yield= round((account_total/begin_balance -1) * 100, 2)
         else: 
@@ -238,17 +242,19 @@ def refresh_portfolio_quotes():
         account.save()
 
 
-def get_asset_summary(asset):
+def populate_asset_fields(asset):
+    
+    # Adjust for option. Contract = 100 shares
     adj = 1
     if (asset.type == "option"):
         adj = 100
 
+    # Calculate and populate asset fields
     current_price  = float(asset.current_price)
     size = float(asset.size)
     entry_price = float(asset.entry_price)
     book_value = round(entry_price * (size*adj),2)
-    market_value = round(current_price * (size*adj),2)
-    
+    market_value = round(current_price * (size*adj),2)    
     asset.profit = round(market_value - book_value,2)
     asset.marketval = market_value
     asset.bookval = book_value
