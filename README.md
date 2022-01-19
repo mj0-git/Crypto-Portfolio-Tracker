@@ -3,14 +3,26 @@ I could never find an app that conveniently consolidates all displays of my fina
 
 ## Overview ##
 
-Features a simple single-page layout to construct/track/backtest the performance of portfolios using current and historical price data. 
+Simple single-page layout to construct/track/backtest the performance of custom portfolios using current and historical price data. 
 
 ![](./images/splash.png)
  
 
 ![](./images/portfolio.png)
 
+## Features ##
 
+Add and track Crypto/Equity assets. Price and historical data is fetched using  __[Alpha Vantage](https://www.alphavantage.co/)__ API
+![](./images/crypto.png)
+
+Add and track Options. Price data is fetched using __[Yahoo_fin](https://theautomatic.net/yahoo_fin-documentation/)__ wrapper 
+
+![](./images/option.png)
+
+Visualize portfolio performance over historical timeframes.
+Charted using __[Plotly](https://plotly.com/python/)__
+
+![](./images/plotly.png)
 
 ## Setup 
 1. Install requirements (Recommend to use virtual env)
@@ -26,7 +38,7 @@ Features a simple single-page layout to construct/track/backtest the performance
     python manage.py migrate
     ```
 
-4. Obtain Free API key for AlphaVantage from __[RapidAPI](https://rapidapi.com/hub)__, write to  __secrets-example.json__, and rename file to __secrets.json__ 
+4. Obtain Free API key for AlphaVantage from __[Alpha Vantage](https://www.alphavantage.co/)__, write to  __secrets-example.json__, and rename file to __secrets.json__ 
 __Please Note__: You must complete this step in order to refresh quotes!
     ``` 
     mv  secrets-example.json secrets.json
