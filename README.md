@@ -1,13 +1,16 @@
 # Portfolio Watch
-I could never find an app that conveniently consolidates all displays of my financial portfolios.. so I created "Portfolio Watch" using Django and a few APIs to track equities, crypto, and option prices. 
+I could never find an app that conveniently consolidates all displays of my financial portfolios, so I created "Portfolio Watch" using Django and a few APIs to track multiple portfolios composed of equities, crypto, and options.
 
-![](./images/home.png)
+## Overview ##
 
-Keep track of all your ongoing trades, including tracking entry, target, stop loss, and current price. Seamlessly integrated with yahoo_fin and alpha-vantage API, portfolio quotes can be updated with a single button click. 
+Features a simple single-page layout to construct/track/backtest the performance of portfolios using current and historical price data. 
 
-![](./images/add.png)
+![](./images/splash.png)
+ 
 
-My long-term vision of Portfolio Watch is to be a one-stop-shop for tracking your entire financial status - ongoing investments, current savings, loans, expenses, and more. Time being, I have included a test database for your use; please follow the instructions below to get started
+![](./images/portfolio.png)
+
+
 
 ## Setup 
 1. Install requirements (Recommend to use virtual env)

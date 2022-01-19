@@ -6,22 +6,26 @@ from home.models import Asset, Portfolio
 class AssetForm(ModelForm):
     class Meta:
         model = Asset
-        exclude = ('current_price',)
+        exclude = ('current_price','marketval','bookval','profit')
         widgets = {
             'name': TextInput(attrs={
                 'type': 'None',
                 'class': "form-control",
                 'style': 'max-width: 300px;',
-                'placeholder': 'BTCUSD'
+                'placeholder': 'SPY'
                 }),
             'purchase_date': DateInput(attrs={
                 'class': "form-control",
                 }),
             'size': TextInput(attrs={
                 'class': "form-control",
+                'style': 'max-width: 300px;',
+                'placeholder': '100'
                 }),
             'entry_price': TextInput(attrs={
                 'class': "form-control",
+                'style': 'max-width: 300px;',
+                'placeholder': '409.5'
                 }),              
             'type': Select(attrs={
                 'class': "form-control",
@@ -45,7 +49,7 @@ class AssetForm(ModelForm):
 class PortfolioForm(ModelForm):
     class Meta:
         model = Portfolio
-        fields = '__all__'
+        exclude = ('marketval','bookval','c_yield','p_yield','net_cash','total')
         widgets = {
             'name': TextInput(attrs={
                 'class': "form-control",

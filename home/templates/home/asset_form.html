@@ -1,63 +1,61 @@
 {% extends "base_bootstrap.html" %}
 {% block content %}
-  <h2> Asset Form </h2> 
   <form action="" method="post">
     {% csrf_token %}
-    <div id="default">
+  
+    <div id="name" class="new-row">
       <div class="form-group row">
-          <label class="col-sm-2 col-form-label">{{ form.name.label }}: </label>
-          <div class="col-sm-10">{{ form.name }} </div> 
-      </div>
-      <div class="form-group row">
-          <label class="col-sm-2 col-form-label">{{ form.purchase_date.label }}: </label>
-          <div class="col-sm-10">{{ form.purchase_date }} </div>
+          <h5 class="col-sm-1 col-form-label">Name: </h5>
+          <div>{{ form.name }} </div> 
+          <h5 class="col-sm-1 col-form-label">Date:</h5>
+          <div>{{ form.purchase_date }} </div>
       </div> 
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.size.label }}: </label>
-        <div class="col-sm-10">{{ form.size }} </div>
-      </div> 
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.entry_price.label }}: </label>
-        <div class="col-sm-10">{{ form.entry_price }} </div>
-      </div>
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.type.label }}: </label>
-        <div class="col-sm-10">{{ form.type }} </div>
-      </div>
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.portfolio.label }}: </label>
-        <div class="col-sm-10">{{ form.portfolio }} </div>
-      </div> 
-    </div> 
+    </div>
+
+    <div class="new-row" style="width: 60%;">
+        <div class="form-group row">
+          <h5 class="col-sm-2 col-form-label">Amount: </h5>
+          <div class="col-sm-5">{{ form.size }} </div>
+        </div> 
+    </div>
     
-    <div id="option" >
+    <div id="entry" class="new-row" style="width: 50%;">
+        <div class="form-group row">
+          <h5 class="col-sm-3 col-form-label"> Entry Price: </h5>
+          <div class="col-sm-5">{{ form.entry_price }} </div>
+        </div>
+    </div>
+    
+    <div class="new-row">
       <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.option_type.label }} </label>
+        <h5 class="col-sm-1 col-form-label">Type: </h5>
+        <div>{{ form.type }} </div> 
+        <h5 class="col-sm-1 col-form-label">Portfolio:</h5>
+        <div>{{ form.portfolio }} </div>
+      </div>
+    </div>
+
+    
+    <div class="new-row" id="option" style="width: 50%;" >
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label"> Option </label>
         <div class="col-sm-10">{{ form.option_type }} </div>
-      </div>
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.option_strike.label }} </label>
+        <label class="col-sm-2 col-form-label"> Strike: </label>
         <div class="col-sm-10">{{ form.option_strike }} </div>
-      </div>
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.option_expiry.label }} </label>
+        <label class="col-sm-2 col-form-label"> Expiry: </label>
         <div class="col-sm-10">{{ form.option_expiry }} </div>
       </div>
     </div>
 
     <a href='#' class='advanced'>Advanced Options</a>
 
-    <div id='advancedOptions'>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label class="col-sm-2 col-form-label">Stop</label>
-          {{ form.target_price }}
-        </div>
-        <div class="form-group col-md-6">
-          <label class="col-sm-2 col-form-label"> Target </label>
-          {{ form.stop_price }}
-        </div>
-      </div>
+    <div class="new-row" id='advancedOptions'>
+        <div class="form-group row">
+            <h5 class="col-sm-1 col-form-label">Stop: </h5>
+            <div>{{ form.target_price }} </div> 
+            <h5 class="col-sm-1 col-form-label">Target:</h5>
+            <div>{{ form.stop_price }} </div>
+        </div> 
     </div>
     {{ form.errors }}
 
@@ -74,7 +72,14 @@
         if (document.getElementById("asset-type").value == "option"){
           document.getElementById("option").style.display = 'block';
         }
+        else if(document.getElementById("asset-type").value == "cash"){
+          document.getElementById("option").style.display = 'none';
+          document.getElementById("name").style.display = 'none';
+          document.getElementById("entry").style.display = 'none';
+        }
         else{
+          document.getElementById("name").style.display = 'block';
+          document.getElementById("entry").style.display = 'block';
           document.getElementById("option").style.display = 'none';
         }
     }

@@ -3,100 +3,91 @@
 {% block  content %}
 
 {% if investment_list%}
-    <h1> Portfolio Watch </h1>
-    <div >
-        <!--
-        {% autoescape off %}
-        {{ plot_div }}
-        {% endautoescape %} -->
-    <table id="summary" class="table table-sm ">
-        <thead>
-            <tr class="h6">
-            <th id="account" scope="col">Investment Account</th>
-            <th scope="col">Book Value</th>
-            <th scope="col">Market Value</th>
-            <th scope="col">Yield</th>
-            <th scope="col">Cash</th>
-            </tr>
-        </thead>
-        {% for p in investment_list %}
-        <tbody>
-            <tr>
-                <td id="account">{{p.account.name}}</td>
-                <td>${{p.account.bookval}}</td>
-                <td>${{p.account.marketval}}</td>
-                {% if p.account.p_yield < 0 %}
-                <td class="Loss">
-                {% else %} 
-                <td class="Profit">
-                {% endif %} 
-                ${{p.account.c_yield}}<br>
-                {{p.account.p_yield}}%</td>
-                <td>${{p.account.cash}}</td>
-            </tr>
-        {% endfor %}
-        {% if invest_total%}
-            <tr>
-                <td></td>
-                <td>${{invest_total.book}}</td>
-                <td>${{invest_total.market}}</td>
-                {% if invest_total.p_yield < 0 %}
-                <td class="Loss">
-                {% else %} 
-                <td class="Profit">
-                {% endif %}
-                ${{invest_total.c_yield}}<br>
-                {{invest_total.p_yield}}%</td>
-                <td>${{invest_total.cash}}</td>
-                </tr>
-        {% endif %}    
-        <thead>
-            <tr class="h6">
-            <th id="account" scope="col">Bank Account</th>
-            <th scope="col"></th>
-            <th scope="col"></th>
-            <th scope="col"></th>
-            <th scope="col"></th>
-            </tr>
-        </thead>
-        {% for s in savings_list %}
-        <tbody>
-            <tr>
-                <td id="account">{{s.name}}</td>
-                <td>
-                    (<a class="modify" href={% url 'home:portfolio_update' s.id %}> Update </a> |
-                    <a class="modify" href={% url 'home:portfolio_delete' s.id %}> Delete </a> )
-                 </td>
-                <td></td>
-                <td></td>
-                <td>${{s.cash}}</td>
-            </tr>
-        {% endfor %}
-        {% if net_total%}
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>Cash:</td>
-                <td class="table-active">${{net_total.cash}}</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>Assets:</td>
-                <td class="table-active">${{net_total.assets}}</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>Net Worth:</td>
-                <td class="table-active">${{net_total.net}}</td>
-            </tr>
-        {% endif %}    
-        </tbody> 
-    </table>
+    <div>
+        <div class="one" style="width:60%;">
+            <table id="summary" class="table table-sm ">
+                <thead>
+                    <tr class="h6">
+                    <th id="account" scope="col">Investment Account</th>
+                    <th scope="col"></th>
+                    <th scope="col">Cash</th>
+                    <th scope="col">Market Value</th>
+                    <th scope="col">Begining Balance</th>
+                    <th scope="col">Account Value</th>
+                    </tr>
+                </thead>
+                {% for p in investment_list %}
+                <tbody>
+                    <tr>
+                        <td id="account">{{p.account.name}}</td>
+                        <td></td>
+                        <td>${{p.account.net_cash | add_comma}}</td>
+                        <td>${{p.account.marketval | add_comma}}</td>
+                        <td>${{p.account.cash| add_comma}}</td>
+                        <td>${{p.account.total | add_comma}}
+                            {% if p.account.p_yield < 0 %}
+                            <br><label class="Loss" style="font-size:16px;">
+                                {{p.account.c_yield | add_comma}}
+                                ({{p.account.p_yield}}%) </label></td>
+                            {% else %} 
+                            <br><label class="Profit" style="font-size:16px;">
+                                +{{p.account.c_yield | add_comma}}
+                                ({{p.account.p_yield}}%) </label></td>
+                            {% endif %}            
+                    </tr>
+                {% endfor %}
+                {% if invest_total%}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="table-active">${{invest_total | add_comma}}</td>
+                        </tr>
+                {% endif %}    
+                <thead>
+                    <tr class="h6">
+                    <th id="account" scope="col">Bank Account</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    </tr>
+                </thead>
+                {% for s in savings_list %}
+                <tbody>
+                    <tr>
+                        <td id="account">{{s.name}}</br>
+                            <a class="modify" href={% url 'home:portfolio_update' s.id %}> Update </a> |
+                            <a class="modify" href={% url 'home:portfolio_delete' s.id %}> Delete </a> 
+                        </td>
+                        <td></td>
+                        <td>${{s.cash}}</td>
+                        <td> </td>
+                        <td></td>
+                        <td>${{s.cash}}</td>
+                    </tr>
+                {% endfor %}
+                {% if net_total%} 
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="table-active">${{net_total | add_comma}}</td>
+                    </tr>
+                {% endif %}    
+                </tbody> 
+            </table>
+        </div>
+        <div class="two" style="width:60%;">
+            {% autoescape off %}
+            {{ plot_div_total }}
+            {% endautoescape %}
+        </div>
     </div>
     <div style="clear:both">
     <form action="" method="post">
@@ -111,76 +102,76 @@
         (<a class="modify" href={% url 'home:portfolio_update' p.account.id %}> Update </a> |
         <a class="modify" href="{% url 'home:portfolio_delete'  p.account.id %}"> Delete </a>)
     </div>
-    <table id="summary" class="table table-sm table-bordered">
-        <tr>
-            <td class="font-weight-bold"> Market Value: </td>
-            <td>${{p.account.marketval}}</td>
-        </tr>
-        <tr>
-            <td class="font-weight-bold"> Book Value: </td>
-            <td> ${{p.account.bookval}}</td>
-        </tr>
-        <tr>
-            <td class="font-weight-bold"> Yield: </td>
-            {% if p.account.p_yield < 0 %}
-            <td class="Loss">
-                ${{p.account.c_yield}}</td>
+    <div style="clear:both"></div>
+    <div class="one">
+        {% if p.plot_div%}   
+            {% autoescape off %}
+            {{ p.plot_div }}
+            {% endautoescape %} 
+        {% endif %}
+    </div>
+    <div class="two">
+        <table id="summary" class="table table-sm table-bordered">
+            <tr>
+                <td class="font-weight-bold"> Account Value: </td>
+                <td>${{p.account.total | add_comma}}
+                {% if p.account.p_yield < 0 %}
+                <br><label class="Loss">
+                    {{p.account.c_yield | add_comma}}
+                    ({{p.account.p_yield}}%) </label></td>
+                {% else %} 
+                <br><label class="Profit">
+                    +{{p.account.c_yield | add_comma}}
+                    ({{p.account.p_yield}}%) </label></td>
+                {% endif %} 
             </tr>
             <tr>
-                <td> </td>
-            <td class="Loss">
-                {{p.account.p_yield}}%</td>
-            </tr>
-            {% else %} 
-            <td class="Profit">
-                ${{p.account.c_yield}}</td>
+                <td class="font-weight-bold"> Begining Balannce: </td>
+                <td> {{p.account.cash | add_comma}} </td>
+                </tr>
             </tr>
             <tr>
-                <td> </td>
-            <td class="Profit">
-                {{p.account.p_yield}}%</td>
+                <td class="font-weight-bold"> Market Value: </td>
+                <td>${{p.account.marketval | add_comma}}</td>
             </tr>
-            {% endif %} 
-        
-        </tr>
-        <tr>
-            <td class="font-weight-bold"> Cash: </td>
-            <td> ${{p.account.cash}}</td>
-        </tr>
-    </table>
-        {% if p.assets%}        
+            <tr>
+                <td class="font-weight-bold"> Cost: </td>
+                <td> ${{p.account.bookval | add_comma}}</td>
+            </tr>
+            <tr>
+                <td class="font-weight-bold"> Cash: </td>
+                <td> ${{p.account.net_cash | add_comma}}</td>
+            </tr>
+        </table>
+    </div>
+    {% if p.assets%}        
         <table id="investment" class="table table-bordered">
             <thead class="thead-dark">
                 <tr>
-                <th scope="col">Purchase Date</th>
-                <th scope="col">Type</th>
-                <th scope="col">Name</th>
-                <th scope="col">Entry Price</th>
-                <th scope="col">Size</th>
-                <th scope="col">Profit/Loss</th>
+                <th scope="col">Symbol</th>
                 <th scope="col">Current Price</th>
-                <th scope="col">Book Value</th>
                 <th scope="col">Market Value</th>
+                <th scope="col">Cost</th>
+                <th scope="col">Profit/Loss</th>
+                <th scope="col">Size</th>
                 <th scope="col">Action</th>
                 </tr>
             </thead>
             {% for asset in p.assets %}
             <tbody>
                 <tr>
-                    <td>{{asset.purchase_date}}</td>
-                    <td>{{asset.type}}</td>
-                    <td><b>{{asset.name}}</b></td>
-                    <td>${{asset.entry_price}}</td>
-                    <td>{{asset.size}}</td>
+                    <td><b style="font-size:18px;">{{asset.name}}</b>
+                        <br>{{asset.type}}</td>
+                    <td>${{asset.current_price | add_comma}}</td>
+                    <td>${{asset.marketval | add_comma}}</td>
+                    <td>${{asset.bookval | add_comma}}</td>
                     {% if asset.profit < 0 %}
                     <td class="Loss">
                     {% else %} 
                     <td class="Profit">
                     {% endif %} 
-                        ${{asset.profit}}</td>
-                    <td>${{asset.current_price}}</td>
-                    <td>${{asset.bookval}}</td>
-                    <td>${{asset.marketval}}</td>
+                        {{asset.profit | add_comma}}</td>
+                    <td>{{asset.size}}</td>
                      <td>
                         <a class="modify" href={% url 'home:asset_update' asset.id %}> Update </a> <br>
                         <a class="modify" href={% url 'home:asset_delete' asset.id %}> Delete </a>

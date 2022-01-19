@@ -6,7 +6,7 @@ register = template.Library()
 def define(val=None):
   return val
   
-@register.filter
-def hash(h, key):
-    return h[key]
+@register.filter(name='add_comma')
+def add_comma(value):
+    return "{:,}".format(value)
 

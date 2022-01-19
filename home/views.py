@@ -1,3 +1,4 @@
+from unicodedata import name
 from django.http import response
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -9,14 +10,18 @@ from home.models import Asset, Portfolio
 from home.forms import AssetForm, PortfolioForm
 
 import requests
+import pandas_datareader.data as web
 from pandas.io.json import json_normalize
 from yahoo_fin import options
 import plotly.express as px
 import plotly
-import plotly.graph_objs as go
 import pandas as pd 
+import datetime
 
-# Create your views here.
+# ALPHA VANTAGE API
+api = settings.API_KEYS["alpha-vantage"]
+url = api["host"]
+key = api["key"]
 
 class MainView(ListView):
     model = Asset
@@ -28,18 +33,13 @@ class MainView(ListView):
     def get(self, request) :
         context = {}
         
-        # Get Investment Accounts
+        # Get Accounts
         invest_accounts = Portfolio.objects.filter(type="investment")
+        saving_accounts = Portfolio.objects.filter(type="saving")
         if not invest_accounts:
             portfolio = Portfolio(name="Default", cash=0.00)
             portfolio.save()
             invest_accounts = [portfolio]
-        
-        # Get Saving Accounts
-        saving_accounts = Portfolio.objects.filter(type="saving")
-        
-        df = pd.DataFrame.from_records(Portfolio.objects.all().values())
-        #print(df.head())
         
         # Track Investment Running Totals
         investment_list = []
@@ -50,31 +50,17 @@ class MainView(ListView):
         # Track Savings Running Totals
         saving_list = []
         total_cash = 0
-
-        # Work in Progress...
-        df = pd.DataFrame({'mass': [0.330, 4.87 , 5.97],
-                   'radius': [2439.7, 6051.8, 6378.1]},
-                  index=['Mercury', 'Venus', 'Earth'])
-        trace1 = go.Pie(
-                labels = df.index,
-                values= df["mass"],
-                name='OperatorShare'
-                )
-        data = [trace1]
-        layout = go.Layout(
-                        title='Test',
-                        )
-        fig = go.Figure(data=data, layout=layout)
-
-        plot_div = plotly.offline.plot(fig, output_type='div')
+        saving_cash = 0
 
         # Saving Account
         for account in saving_accounts:
             saving_list.append(account)
+            saving_cash += account.cash
             total_cash += account.cash
             account.cash = "{:,}".format(round(account.cash,2))
 
         # Investment Account
+        df_total = pd.DataFrame()
         for account in invest_accounts:
             asset_set = account.asset_set.all()
             
@@ -82,87 +68,127 @@ class MainView(ListView):
             account_book = sum(float(asset.bookval) for asset in asset_set)
             account_market = sum(float(asset.marketval) for asset in asset_set)
             account_cash = float(account.cash)
-            market, book, cash, c_yield, p_yield = get_summary(account_market, account_book, account_cash)
-            account.marketval = market
-            account.bookval = book
-            account.cash = cash
-            account.c_yield = c_yield
-            account.p_yield = p_yield
-            investment_list.append( {"account":account, "assets":asset_set}  )
+            plot_div = None
+
+            # Plot Account Balance History
+            acct_series = account_balance_series(account)
+            if not acct_series.empty:
+                fig = plot_acct_balance(acct_series, acct_series.name)
+                plot_div = plotly.offline.plot(fig, output_type='div')
+                df_total = pd.concat([df_total, acct_series], axis=1 )
+            
+
+            investment_list.append( {"account":account, "assets":asset_set, "plot_div":plot_div}  )
             
             
             invest_total_book += account_book
             invest_total_cash += account_cash
             invest_total_market += account_market
-            
-        # Saving and Investment Details 
+        
+
+        # Account & Asset Details 
         context["savings_list"] = saving_list
         context["investment_list"] = investment_list
 
-        # Summary of Total Investment Accounts 
-        market, book, cash, c_yield, p_yield = get_summary(invest_total_market, invest_total_book, invest_total_cash)
-        context["invest_total"] = {"market":market, "book":book, "p_yield":p_yield, "c_yield":c_yield, "cash":cash}
+        # Net Investment Accounts 
+        total = round((invest_total_market + (invest_total_cash - invest_total_book) ), 2)
+        context["invest_total"] = total
 
-        # Summary of Total Net Worth
+        # Total Net Worth
         total_cash = float(total_cash) + invest_total_cash - invest_total_book
-        total_net = total_cash + invest_total_market
-        total_cash = "{:,}".format(round(total_cash,2))
-        total_net = "{:,}".format(round(total_net,2))
-        context["net_total"] = {"cash":total_cash, "assets":market, "net":total_net}
+        total_net = round(total_cash + invest_total_market,2)
+        context["net_total"] = total_net
 
+        # Plot Total Accounts Balance History
+        df_total.fillna(method='ffill', inplace=True)
+        col_names =list(df_total)
+        df_total["total"] = df_total[col_names].sum(axis=1)
+        df_total["total"] = df_total["total"] + float(saving_cash) # Add Saving Cash
+        fig_total = plot_acct_balance(df_total, "total")
+        fig_total['data'][0]['line']['color']='rgb(6, 23, 1)'
+        fig_total['data'][0]['line']['width']=2
+        plot_div_total = plotly.offline.plot(fig_total, output_type='div')
+        context["plot_div_total"] = plot_div_total
+        
         return render(request, self.template_name, context)
     
     def post(self, request):
-        get_asset_list()
+        refresh_asset_quotes()
+        refresh_portfolio_quotes()
         return redirect(self.success_url)
 
 
+def plot_acct_balance(df, col):
+    fig = px.line(df, x=df.index, y=col)
+    fig.update_layout(title_text='')
+    fig.update_xaxes(title_text='')
+    fig.update_yaxes(title_text='')
+    return fig  
 
-
-def get_summary(in_market, in_book, in_cash):
-    market = "{:,}".format(round(in_market,2))
-    book = "{:,}".format(round(in_book,2))
-    cash = "{:,}".format(round(in_cash - in_book,2))
-
-    c_yield= "{:,}".format(round((in_market - in_book), 2))
-    if in_book > 0:
-        p_yield= round((in_market/in_book - 1) * 100, 2)
-    else: 
-        p_yield = 0  
+def account_balance_series(account):
     
-    return market, book, cash, c_yield, p_yield
+    # Dataframe to track historical Account Balance
+    df = pd.DataFrame()
 
-def get_crypto_list(crypto_list):
-    url = "https://coingecko.p.rapidapi.com/simple/price"
-    ids = ",".join(crypto_list)
-    querystring = {"ids":ids,"vs_currencies":"usd"}
-    headers = settings.API_KEYS["coingecko"]
-    try:
-        response = requests.get(url, headers=headers, params=querystring)
-        data = response.json()
-        data = {key:val["usd"] for key, val in data.items()}
+    # Get Options PNL - No price history available
+    options = account.asset_set.filter(Q(type="option"))
+    option_pnl = 0 
+    if options:
+         option_pnl = sum((float(option.current_price) - float(option.entry_price))*float(option.size)*100 for option in options)
 
-    except requests.exceptions.HTTPError as e:
-        print (e.response.text)
-        data =  None
+    # Get Equity/Crypto to fetch historical price data 
+    assets = account.asset_set.filter(Q(type="equity")| Q(type="crypto")).order_by('purchase_date')
+    if assets:
+        
+        # Fix Crypto name for API Call      
+        name_list = []
+        for asset in assets: 
+            if asset.type == "crypto":
+                fix_name = asset.name.replace("USD","-USD")
+                asset.name = fix_name
+            name_list.append(asset.name)
+        
+        # Fetch istorical price data 
+        # NOTE: Have to use yahoo given AlphaVantage api limit resitricitons
+        df = web.DataReader(name_list, 'yahoo', start=assets[0].purchase_date, end=datetime.datetime.today().strftime('%Y-%m-%d'))
+        df = df["Close"]
 
-    return data
+        # Add begining cash balance and track running
+        df["acct_balance"] = float(account.cash)
+        running_balance = float(account.cash) 
+
+        # Calculate and store value of assets + cash per day
+        for asset in assets:
+            df.loc[:asset.purchase_date, asset.name] = 0
+            size = df.loc[asset.purchase_date:, asset.name] * float(asset.size)
+            df.loc[asset.purchase_date:, asset.name] = size
+            running_balance = float(running_balance) - float(asset.bookval)
+            df.loc[asset.purchase_date + datetime.timedelta(days=1):, "acct_balance"] =  running_balance
+        
+        # Forward fill NA with prev value (Occurs because of holidays given equity+crypto)
+        df.fillna(method='ffill', inplace=True)
+        
+        # Calculate total account value (includes pnl)
+        name = account.name + "_balance"
+        col_names =list(df)
+        df[name] = df[col_names].sum(axis=1)
+        df[name] = df[name] + option_pnl
+
+    return df[name]
 
 
-def get_asset_list():
+
+def refresh_asset_quotes():
     portfolios = Portfolio.objects.all() 
 
     for portfolio in portfolios:
-            
         crypto_equity_set = portfolio.asset_set.filter(Q(type="crypto") | Q(type="equity"))
         option_set = portfolio.asset_set.filter(type="option")
-        url = "https://alpha-vantage.p.rapidapi.com/query"
     
         for asset in crypto_equity_set:
             try:
-                querystring = {"function":"GLOBAL_QUOTE","symbol":asset.name}
-                headers = settings.API_KEYS["alpha-vantage"]
-                response = requests.request("GET", url, headers=headers, params=querystring)
+                querystring = {"function":"GLOBAL_QUOTE","symbol":asset.name,"apikey":key}
+                response = requests.request("GET", url, params=querystring)
                 data = response.json() 
                 price = round(float(data["Global Quote"]['05. price']),2)
                 print("Asset:{}  Price:{}".format(asset.name, price))
@@ -187,6 +213,29 @@ def get_asset_list():
             except requests.exceptions.HTTPError as e:
                 print("Failed to update OPTION Price for {}".format(asset.name) )
                 print (e.response.text)
+
+def refresh_portfolio_quotes():
+    
+    portfolios = Portfolio.objects.filter(type="investment")
+    for account in portfolios:
+        asset_set = account.asset_set.all()
+        account_book = sum(float(asset.bookval) for asset in asset_set)
+        account_market = sum(float(asset.marketval) for asset in asset_set)
+        begin_balance = float(account.cash)
+        account_total = (account_market + (begin_balance - account_book))
+
+        account.marketval = round(account_market,2)
+        account.bookval =  round(account_book,2)
+        account.net_cash = round(begin_balance - account_book,2)
+        account.c_yield= round((account_market - account_book), 2)
+        account.total = round(account_total, 2)
+
+        
+        if account_book > 0:
+            account.p_yield= round((account_total/begin_balance -1) * 100, 2)
+        else: 
+            account.p_yield = 0 
+        account.save()
 
 
 def get_asset_summary(asset):

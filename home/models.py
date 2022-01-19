@@ -16,6 +16,13 @@ class Portfolio(models.Model):
     type = models.CharField(max_length=10, choices=PORTFOLIO_TYPE_CHOICES, default='investment')
     
 
+    # Output Variables Only
+    marketval = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    bookval = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    c_yield = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    p_yield = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    net_cash = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    total = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
 
     def __str__(self) -> str:
         return self.name

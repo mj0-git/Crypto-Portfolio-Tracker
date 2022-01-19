@@ -1,20 +1,19 @@
 {% extends "base_bootstrap.html" %}
 {% block content %}
-  <h2> Portfolio Form </h2> 
   <form action="" method="post">
     {% csrf_token %}
-    <div id="default">
+    <div id="new-row">
       <div class="form-group row">
-          <label class="col-sm-2 col-form-label">{{ form.name.label }}: </label>
-          <div class="col-sm-10">{{ form.name }} </div> 
+          <label class="col-sm-1 col-form-label">{{ form.name.label }}: </label>
+          <div class="col-sm-5">{{ form.name }} </div> 
       </div>
       <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.cash.label }}: </label>
-        <div class="col-sm-10">{{ form.cash }} </div> 
+        <label class="col-sm-1 col-form-label">{{ form.cash.label }}: </label>
+        <div class="col-sm-5">{{ form.cash }} </div> 
       </div>
       <div class="form-group row">
-        <label class="col-sm-2 col-form-label">{{ form.type.label }}: </label>
-        <div class="col-sm-10">{{ form.type }} </div> 
+        <label class="col-sm-1 col-form-label">{{ form.type.label }}: </label>
+        <div class="col-sm-5">{{ form.type }} </div> 
       </div>
     </div>
 
