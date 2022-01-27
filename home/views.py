@@ -24,6 +24,9 @@ url = api["host"]
 key = api["key"]
 
 class MainView(ListView):
+    """
+    Main view displaying accounts and assets - asset_list.html
+    """
     model = Asset
     template_name = "home/asset_list.html"
     success_url = reverse_lazy('home:all')
@@ -114,6 +117,13 @@ class MainView(ListView):
 
 
 def plot_acct_balance(df, col):
+    """
+    Create figure of portfolio performance
+    
+    :param df: Dataframe of accounts
+    :param col: account name
+    :return fig: Figure depicting plot
+    """
     fig = px.line(df, x=df.index, y=col)
     fig.update_layout(title_text='')
     fig.update_xaxes(title_text='')
@@ -121,7 +131,12 @@ def plot_acct_balance(df, col):
     return fig  
 
 def account_balance_series(account):
-    
+    """
+    Create Series depicting historical value of account
+
+    :param account: Account name
+    :return df[name]: Series depicting historical value of account
+    """
     # Dataframe to track historical Account Balance
     df = pd.DataFrame()
 
@@ -174,6 +189,10 @@ def account_balance_series(account):
 
 
 def refresh_asset_quotes():
+    """
+    Fetch current price of assets and update model in DB
+    """
+
     portfolios = Portfolio.objects.all() 
 
     for portfolio in portfolios:
@@ -211,14 +230,18 @@ def refresh_asset_quotes():
                 
                 # Populate asset fields and save
                 asset.current_price = round(price.item(),2)
-                asset = get_asset_summary(asset)
+                asset = populate_asset_fields(asset)
                 asset.save()
             except requests.exceptions.HTTPError as e:
                 print("Failed to update OPTION Price for {}".format(asset.name) )
                 print (e.response.text)
 
 def refresh_portfolio_quotes():
-    
+    """
+    Update portfolio summary quotes in DB using up-to-date asset prices
+    NOTE: Function is called after refresh_asset_quotes
+    """
+
     portfolios = Portfolio.objects.filter(type="investment")
     for account in portfolios:
 
@@ -243,6 +266,12 @@ def refresh_portfolio_quotes():
 
 
 def populate_asset_fields(asset):
+    """
+    Update asset fields
+
+    :param asset: asset object
+    :return asset: asset object
+    """
     
     # Adjust for option. Contract = 100 shares
     adj = 1
@@ -262,55 +291,51 @@ def populate_asset_fields(asset):
     return asset
 
 class AssetCreate(CreateView):
+    """
+    Create Asset View - asset_form.html
+    """
     model = Asset
     form_class = AssetForm
     success_url = reverse_lazy('home:all')
 
 
 class AssetUpdate(UpdateView):
+    """
+    Update Asset View - asset_form.html
+    """
     model = Asset
     form_class = AssetForm
     success_url = reverse_lazy('home:all')
 
 class AssetDelete(DeleteView):
+    """
+    Delete Asset View - asset_confirm_delete.html
+    """
     model = Asset
     fields = '__all__'
     success_url = reverse_lazy('home:all')
 
 class PortfolioCreate(CreateView):
+    """
+    Create Portfolio(account) View - portfolio_form.html
+    """
     model = Portfolio
     form_class = PortfolioForm
     success_url = reverse_lazy('home:all')
 
 class PortfolioUpdate(UpdateView):
+    """
+    Update Portfolio(account) View - portfolio_form.html
+    """
     model = Portfolio
     form_class = PortfolioForm
     success_url = reverse_lazy('home:all')
 
 class PortfolioDelete(DeleteView):
+    """
+    Delete Portfolio(account) View - portfolio_confirm_delete.html
+    """
     model = Portfolio
     fields = '__all__'
     success_url = reverse_lazy('home:all')
-
-# Archived Function
-def autocomplete(request):
-    
-    url = "https://coingecko.p.rapidapi.com/exchanges/gdax/tickers"
-    headers = settings.API_KEYS["coingecko"]
-    param = request.GET.get('term', None)
-
-    try:
-        response = requests.request("GET", url, headers=headers)
-        data = response.json()
-        coin_ids = json_normalize(data["tickers"], sep="_")
-        temp = coin_ids["coin_id"].tolist()
-        filtered = set(filter(lambda coin : coin.startswith(param), temp))
-        data = list(filtered)
-        status = 200
-
-    except requests.exceptions.HTTPError as e:
-        print (e.response.text)
-        data = None
-        status = 500
-
-    return  JsonResponse({'status': status, 'data': data})    
+ 
